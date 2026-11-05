@@ -792,33 +792,95 @@ panel.querySelectorAll('[data-v36]').forEach(b=>b.addEventListener('click',()=>{
  }));
 })();</script><div id="v39AuthOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="v39AuthTitle"><div class="v39-auth-dialog"><button id="v39AuthClose" class="v39-auth-close" type="button" aria-label="Cerrar ventana de ingreso">×</button><div class="v39-auth-kicker">DESCÚBRETE · SOMOS ESPEJO</div><h2 id="v39AuthTitle">Bienvenida a tu espacio</h2><p>Inicia sesión para identificarte en Descúbrete. También puedes explorar sin una cuenta.</p><button id="v39GoogleLogin" class="v39-google-button" type="button"><span class="v39-google-icon" aria-hidden="true">G</span> Continuar con Google</button><button id="v39SkipLogin" class="v39-skip" type="button">Seguir explorando sin ingresar</button><p class="v39-auth-note">Google verificará tu identidad. Tu historial privado todavía no se sincroniza con Supabase.</p><p id="v39AuthStatus" class="v39-auth-status" role="status" aria-live="polite"></p></div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
-<script id="v39-google-auth" defer>
-(function(){'use strict';
- const URL='https://drhbtvhzjcldhqakvrem.supabase.co';
- const KEY='sb_publishable_ekj5oBbhcS5VmgLn30lOfQ_jVX7t9p8';
- const SITE='https://somosespejo230-art.github.io/Descubrete/';
- const overlay=document.getElementById('v39AuthOverlay'), status=document.getElementById('v39AuthStatus');
- const close=()=>{overlay.hidden=true;document.body.style.removeProperty('overflow')};
- let signedInUser=null;
- const goToSpace=()=>{const target=document.querySelector('header nav button[data-page="account"]:not(.v26-account-link)');if(target)target.click();else document.getElementById('account')?.scrollIntoView({behavior:'smooth'})};
- const open=()=>{if(signedInUser){close();goToSpace();return;}overlay.hidden=false;document.body.style.overflow='hidden';document.getElementById('v39GoogleLogin').focus()};
- document.getElementById('v39AuthClose').addEventListener('click',close);
- document.getElementById('v39SkipLogin').addEventListener('click',close);
- overlay.addEventListener('click',e=>{if(e.target===overlay)close()});
- document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!overlay.hidden)close()});
- // Solo el enlace explícito de ingreso abre la ventana. Mi Universo sigue siendo explorable en demostración.
- document.querySelectorAll('header .v26-account-link').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();open()},true));
- // Acceso desde la sección de cuenta sin alterar los cuestionarios ni las demás rutas.
- const account=document.getElementById('account');
- if(account){const entry=document.createElement('div');entry.style.cssText='margin:18px 0;padding:18px;border:1px solid #d6c394;border-radius:16px;background:#fffaf0';entry.innerHTML='<strong>Acceso a Descúbrete</strong><p>Inicia sesión con Google para identificarte. Mi Universo aún es una vista de demostración; tus datos privados no se sincronizan.</p><button type="button" id="v39AccountLogin" class="btn">Continuar con Google</button> <button type="button" id="v39AccountLogout" class="btn ghost" hidden>Cerrar sesión</button><p id="v39AccountState" role="status" aria-live="polite"></p>';account.insertBefore(entry,account.firstChild);document.getElementById('v39AccountLogin').addEventListener('click',open)}
- let client;
- function init(){if(!window.supabase?.createClient){status.textContent='No se pudo cargar la conexión. Comprueba tu conexión a Internet e inténtalo de nuevo.';return}client=window.supabase.createClient(URL,KEY,{auth:{detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
- client.auth.onAuthStateChange((_event,session)=>{render(session?.user||null)});
- client.auth.getSession().then(({data,error})=>{if(error)status.textContent='No se pudo verificar la sesión.';render(data?.session?.user||null)}).catch(()=>{status.textContent='No se pudo comprobar la sesión.'});
- }
- function render(user){signedInUser=user||null;document.querySelectorAll('header .v26-account-link').forEach(b=>{b.textContent=user?'👤 Mi espacio':'👤 Ingresar / Mi espacio';b.setAttribute('aria-label',user?'Ir a Mi espacio':'Ingresar con Google o explorar Mi espacio')});const label=document.getElementById('v39AccountState'),logout=document.getElementById('v39AccountLogout'),login=document.getElementById('v39AccountLogin');if(label)label.textContent=user?'Sesión de Google iniciada: '+(user.email||'cuenta verificada')+'. El panel de administración todavía no está habilitado.':'No has iniciado sesión.';if(logout)logout.hidden=!user;if(login)login.hidden=!!user;if(user){close();status.textContent=''} }
- document.getElementById('v39GoogleLogin').addEventListener('click',async()=>{if(!client){status.textContent='Espera a que cargue la conexión e inténtalo de nuevo.';return}status.textContent='Abriendo Google…';try{const {error}=await client.auth.signInWithOAuth({provider:'google',options:{redirectTo:SITE}});if(error)throw error}catch(e){status.textContent='No se pudo iniciar sesión: '+(e?.message||'error de conexión')}});
- document.getElementById('v39AccountLogout')?.addEventListener('click',async()=>{if(!client)return;const {error}=await client.auth.signOut();if(error)document.getElementById('v39AccountState').textContent='No se pudo cerrar sesión: '+error.message});
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+<script id="v42-google-auth" defer>
+(function(){
+'use strict';
+const URL='https://drhbtvhzjcldhqakvrem.supabase.co';
+const KEY='sb_publishable_ekj5oBbhcS5VmgLn30lOfQ_jVX7t9p8';
+const SITE='https://somosespejo230-art.github.io/Descubrete/';
+const overlay=document.getElementById('v39AuthOverlay');
+const status=document.getElementById('v39AuthStatus');
+const googleButton=document.getElementById('v39GoogleLogin');
+let client=null, signedInUser=null, sessionChecked=false;
+const $=id=>document.getElementById(id);
+function close(){overlay.hidden=true;document.body.style.removeProperty('overflow')}
+function open(){overlay.hidden=false;document.body.style.overflow='hidden';googleButton.focus()}
+function navigateToSpace(){
+  close();
+  const pageButton=document.querySelector('header nav button[data-page="account"]:not(.v26-account-link)');
+  if(pageButton){pageButton.click();return}
+  const section=$('account');if(section){section.hidden=false;section.scrollIntoView({behavior:'smooth',block:'start'})}
+}
+function render(user){
+ signedInUser=user||null;sessionChecked=true;
+ document.querySelectorAll('header .v26-account-link').forEach(b=>{
+  const label=user?'👤 Mi espacio':'👤 Ingresar';
+  if(b.textContent!==label)b.textContent=label;
+  b.setAttribute('aria-label',user?'Ir directamente a Mi espacio':'Iniciar sesión con Google');
+ });
+ const state=$('v39AccountState'), login=$('v39AccountLogin'),logout=$('v39AccountLogout');
+ if(state)state.textContent=user?'Sesión iniciada: '+(user.email||'cuenta verificada')+'. Mi Universo aún no sincroniza datos privados y la administración sigue pendiente.':'No has iniciado sesión.';
+ if(login)login.hidden=!!user;
+ if(logout)logout.hidden=!user;
+ if(user){close();status.textContent=''}
+}
+async function checkSession(){
+ if(!client)return null;
+ try{
+  const {data,error}=await client.auth.getSession();
+  if(error)throw error;
+  render(data?.session?.user||null);
+  return data?.session?.user||null;
+ }catch(err){status.textContent='No se pudo verificar la sesión. Revisa tu conexión.';return null}
+}
+async function handleEntry(){
+ // Consultamos Supabase en cada pulsación: no dependemos de una etiqueta antigua.
+ if(!client){status.textContent='Cargando inicio de sesión. Inténtalo en unos segundos.';open();return}
+ const user=await checkSession();
+ if(user){navigateToSpace();return}
+ open();
+}
+// Delegación en captura: funciona incluso si la navegación se vuelve a dibujar.
+document.addEventListener('click',function(event){
+ const button=event.target.closest?.('header .v26-account-link');
+ if(!button)return;
+ event.preventDefault();event.stopImmediatePropagation();
+ void handleEntry();
+},true);
+$('v39AuthClose').addEventListener('click',close);
+$('v39SkipLogin').addEventListener('click',close);
+overlay.addEventListener('click',e=>{if(e.target===overlay)close()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!overlay.hidden)close()});
+const account=$('account');
+if(account){
+ const entry=document.createElement('div');
+ entry.style.cssText='margin:18px 0;padding:18px;border:1px solid #d6c394;border-radius:16px;background:#fffaf0';
+ entry.innerHTML='<strong>Acceso a Descúbrete</strong><p>Tu sesión se identifica con Google. Mi Universo todavía es una demostración: no guardes información sensible aquí.</p><button type="button" id="v39AccountLogin" class="btn">Continuar con Google</button> <button type="button" id="v39AccountLogout" class="btn ghost" hidden>Cerrar sesión</button><p id="v39AccountState" role="status" aria-live="polite"></p>';
+ account.insertBefore(entry,account.firstChild);
+ $('v39AccountLogin').addEventListener('click',()=>void handleEntry());
+}
+googleButton.addEventListener('click',async()=>{
+ if(!client){status.textContent='La conexión todavía no está disponible.';return}
+ const user=await checkSession();
+ if(user){navigateToSpace();return}
+ status.textContent='Abriendo Google…';googleButton.disabled=true;
+ try{const {error}=await client.auth.signInWithOAuth({provider:'google',options:{redirectTo:SITE}});if(error)throw error}
+ catch(err){status.textContent='No se pudo iniciar sesión: '+(err?.message||'error de conexión');googleButton.disabled=false}
+});
+$('v39AccountLogout')?.addEventListener('click',async()=>{
+ if(!client)return;
+ const {error}=await client.auth.signOut();
+ if(error){$('v39AccountState').textContent='No se pudo cerrar sesión: '+error.message;return}
+ render(null);
+});
+function init(){
+ if(!window.supabase?.createClient){status.textContent='No se pudo cargar Google. Comprueba la conexión y actualiza la página.';return}
+ client=window.supabase.createClient(URL,KEY,{auth:{detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
+ client.auth.onAuthStateChange((_event,session)=>render(session?.user||null));
+ void checkSession();
+ // La sesión puede terminar de restaurarse después del primer render.
+ window.addEventListener('pageshow',()=>void checkSession());
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script></body></html>
