@@ -799,7 +799,9 @@ panel.querySelectorAll('[data-v36]').forEach(b=>b.addEventListener('click',()=>{
  const SITE='https://somosespejo230-art.github.io/Descubrete/';
  const overlay=document.getElementById('v39AuthOverlay'), status=document.getElementById('v39AuthStatus');
  const close=()=>{overlay.hidden=true;document.body.style.removeProperty('overflow')};
- const open=()=>{overlay.hidden=false;document.body.style.overflow='hidden';document.getElementById('v39GoogleLogin').focus()};
+ let signedInUser=null;
+ const goToSpace=()=>{const target=document.querySelector('header nav button[data-page="account"]:not(.v26-account-link)');if(target)target.click();else document.getElementById('account')?.scrollIntoView({behavior:'smooth'})};
+ const open=()=>{if(signedInUser){close();goToSpace();return;}overlay.hidden=false;document.body.style.overflow='hidden';document.getElementById('v39GoogleLogin').focus()};
  document.getElementById('v39AuthClose').addEventListener('click',close);
  document.getElementById('v39SkipLogin').addEventListener('click',close);
  overlay.addEventListener('click',e=>{if(e.target===overlay)close()});
@@ -814,7 +816,7 @@ panel.querySelectorAll('[data-v36]').forEach(b=>b.addEventListener('click',()=>{
  client.auth.onAuthStateChange((_event,session)=>{render(session?.user||null)});
  client.auth.getSession().then(({data,error})=>{if(error)status.textContent='No se pudo verificar la sesión.';render(data?.session?.user||null)}).catch(()=>{status.textContent='No se pudo comprobar la sesión.'});
  }
- function render(user){const label=document.getElementById('v39AccountState'),logout=document.getElementById('v39AccountLogout'),login=document.getElementById('v39AccountLogin');if(label)label.textContent=user?'Sesión de Google iniciada: '+(user.email||'cuenta verificada')+'. El panel de administración todavía no está habilitado.':'No has iniciado sesión.';if(logout)logout.hidden=!user;if(login)login.hidden=!!user;if(user){close();status.textContent=''} }
+ function render(user){signedInUser=user||null;document.querySelectorAll('header .v26-account-link').forEach(b=>{b.textContent=user?'👤 Mi espacio':'👤 Ingresar / Mi espacio';b.setAttribute('aria-label',user?'Ir a Mi espacio':'Ingresar con Google o explorar Mi espacio')});const label=document.getElementById('v39AccountState'),logout=document.getElementById('v39AccountLogout'),login=document.getElementById('v39AccountLogin');if(label)label.textContent=user?'Sesión de Google iniciada: '+(user.email||'cuenta verificada')+'. El panel de administración todavía no está habilitado.':'No has iniciado sesión.';if(logout)logout.hidden=!user;if(login)login.hidden=!!user;if(user){close();status.textContent=''} }
  document.getElementById('v39GoogleLogin').addEventListener('click',async()=>{if(!client){status.textContent='Espera a que cargue la conexión e inténtalo de nuevo.';return}status.textContent='Abriendo Google…';try{const {error}=await client.auth.signInWithOAuth({provider:'google',options:{redirectTo:SITE}});if(error)throw error}catch(e){status.textContent='No se pudo iniciar sesión: '+(e?.message||'error de conexión')}});
  document.getElementById('v39AccountLogout')?.addEventListener('click',async()=>{if(!client)return;const {error}=await client.auth.signOut();if(error)document.getElementById('v39AccountState').textContent='No se pudo cerrar sesión: '+error.message});
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
