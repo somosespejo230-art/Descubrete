@@ -274,7 +274,7 @@ body{background:#f4f7f5!important}body:not(.desc-entered) main{display:block!imp
 <div aria-live="polite" class="u-panel" id="uSphereDetail"><span class="u-pill">Explora tu mapa</span><h3>Selecciona una esfera</h3><p>En la versión conectada encontrarás tus cuestionarios, fechas, resultados y recursos relacionados con esta dimensión.</p></div>
 <div class="u-actions u-tabs"><button aria-pressed="true" data-universe-tab="timeline" type="button">Mi historia</button><button data-universe-tab="journal" type="button">Mi bitácora</button><button data-universe-tab="reports" type="button">Mis informes</button><button data-universe-tab="settings" type="button">Editar cuenta y privacidad</button></div>
 <div class="u-panel" id="uTimeline"><h3>Mi historia de descubrimiento</h3><ol class="u-timeline"><li><b>Primera exploración</b><p class="u-muted">Aquí aparecerá la fecha de tu primer cuestionario y su resultado histórico.</p></li><li><b>Mi recorrido</b><p class="u-muted">Prácticas, aprendizajes y revisiones, organizados cronológicamente.</p></li><li><b>Mi reencuentro</b><p class="u-muted">Comparación entre cuestionarios de la misma versión, sin presentar cambios como diagnósticos.</p></li></ol></div>
-<div class="u-panel" hidden="" id="uJournal"><h3>Mi bitácora de vida</h3><p>Podrás escribir reflexiones, registrar momentos importantes y añadir fotografías de manera voluntaria.</p><p class="u-note">La escritura y las fotografías se habilitarán cuando esté listo el almacenamiento privado, el aviso de privacidad y la opción de eliminar tus datos. No recopilamos esos archivos en esta demostración.</p></div>
+<div class="u-panel" hidden="" id="uJournal"><h3>Mi bitácora de vida</h3><p>Aquí puedes escribir reflexiones y registrar momentos importantes en tu bitácora privada.</p><p class="u-note">La bitácora personal es privada. Sus funciones de guardado dependen de tu sesión y de los permisos de Supabase.</p></div>
 <div class="u-panel" hidden="" id="uReports"><h3>Mi compendio personal</h3><p>Reunirá cuestionarios contestados, análisis, fechas, avances y las reflexiones que tú decidas incluir. Habrá una opción para exportar tu información.</p><p class="u-note">La generación de informes históricos y PDF privados sigue pendiente de implementación.</p></div>
 
 <section aria-labelledby="uFaqTitle" class="u-faq"><h3 id="uFaqTitle">Preguntas y ayuda</h3><details><summary>¿Cómo funcionan los cuestionarios?</summary><p>Elige un tema, responde a tu ritmo y revisa la devolución gratuita. No son diagnósticos clínicos ni sustituyen atención profesional.</p></details><details><summary>¿Qué recibiré si compro un informe de Ikigai?</summary><p>La propuesta es un análisis ampliado de tus respuestas, preguntas de reflexión y sugerencias prácticas descargables. El precio y el contenido definitivo se mostrarán antes de comprar. La compra todavía no está disponible.</p></details><details><summary>¿Puedo consultar mis resultados después?</summary><p>El historial privado se habilitará cuando terminemos de conectar cuentas, permisos y almacenamiento seguro. Esta demostración no guarda los resultados en línea.</p></details><details><summary>¿Mis reflexiones son públicas?</summary><p>No. El diseño contempla privacidad por defecto y controles de acceso por cuenta; las reflexiones de tu bitácora son privadas.</p></details><details><summary>¿Cómo cancelo Plus o elimino mi cuenta?</summary><p>Son operaciones distintas. Cancelar Plus detendrá renovaciones futuras; solicitar la eliminación de la cuenta iniciará un proceso de verificación y tratamiento de datos conforme a la ley. Ambas funciones están pendientes de activación.</p></details></section><p class="u-note">Tu historial y tu bitácora deberán seguir accesibles aunque canceles Plus. Esta versión es una vista de diseño, no una promesa de almacenamiento activo.</p>
@@ -841,8 +841,14 @@ function goAccountTab(tab){closeMenu();navigateToSpace();if(tab){const b=documen
 menu.addEventListener('click',async e=>{const action=e.target.closest('[data-menu]')?.dataset.menu;if(!action)return;
  if(action==='logout'){const {error}=await client.auth.signOut();if(error){document.getElementById('descMenuMessage').textContent=error.message;return}closeMenu();render(null);return}
  if(action==='universe')goAccountTab('timeline');
- if(action==='account')goAccountTab('settings');
- if(action==='plan'){goAccountTab('settings');setTimeout(()=>document.getElementById('descMembershipPlans')?.scrollIntoView({behavior:'smooth',block:'center'}),300)}
+ if(action==='account'){
+   closeMenu();navigateToSpace();
+   setTimeout(()=>document.getElementById('v39AccountState')?.scrollIntoView({behavior:'smooth',block:'center'}),180);
+ }
+ if(action==='plan'){
+   closeMenu();navigateToSpace();
+   setTimeout(()=>document.getElementById('descMembershipPlans')?.scrollIntoView({behavior:'smooth',block:'start'}),180);
+ }
  if(action==='admin'){closeMenu();const b=document.querySelector('header nav button[data-page="essays"], button[data-page="essays"]');if(b)b.click();else if(typeof navigate==='function')navigate('essays');setTimeout(()=>{const target=document.getElementById('v47Admin');if(target&&!target.classList.contains('v47-hidden'))target.scrollIntoView({behavior:'smooth',block:'start'});else document.getElementById('v43AdminArea')?.scrollIntoView({behavior:'smooth',block:'start'});},350)}
 });
 document.addEventListener('click',e=>{if(!menu.hidden&&!menu.contains(e.target)&&!e.target.closest('header .v26-account-link'))closeMenu()});
@@ -1013,7 +1019,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    void (async()=>{const a=await api();const {data,error}=await a.storage.from('descubrete-audios').createSignedUrl(path,300);if(error||!data?.signedUrl){shell.append(node('p','No se pudo abrir el audio: '+(error?.message||'archivo no disponible')));return;}const audio=document.createElement('audio');audio.controls=true;audio.preload='none';audio.src=data.signedUrl;audio.style.width='100%';shell.append(audio)})();return;
   }
   const raw=(item.reading_content||item.content||'').trim();
-  if(!raw){shell.append(node('p','Esta lectura todavía no tiene contenido. Puedes completarla desde Administración.'));return;}
+  if(!raw){shell.append(node('p','No se recibió el texto de esta lectura. Revisa el contenido guardado y los permisos del recurso en Supabase.'));return;}
   const chunks=raw.split(/\n\s*={3,}\s*\n/).map(s=>s.trim()).filter(Boolean);
   const sections=chunks.map((chunk,i)=>{const lines=chunk.split('\n');const first=lines[0].trim();return {title:first.length<95&&lines.length>1?first:'Parte '+(i+1),body:first.length<95&&lines.length>1?lines.slice(1).join('\n').trim():chunk}});
   let current=0;const progress=node('div',undefined,'v52-progress');const fill=node('div');progress.append(fill);shell.append(progress);
@@ -1027,7 +1033,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   const a=await api();if(!a){r.replaceChildren(node('p','No se pudo conectar con Supabase.'));return;}
   let result=await a.rpc('get_learning_resource',{p_resource_id:x.resource_id});
   if(result.error&&admin)result=await a.rpc('get_learning_resource',{p_resource_id:x.resource_id});
-  if(result.error){r.replaceChildren(node('p','No se pudo abrir la lectura: '+result.error.message));return;}
+  if(result.error){
+   const notice=node('div');
+   notice.append(node('p','No se pudo abrir la lectura: '+result.error.message));
+   const exit=node('button','✕ Cerrar lectura');exit.type='button';exit.onclick=closeReader;
+   notice.append(exit);r.replaceChildren(notice);return;
+  }
   const item=Array.isArray(result.data)?result.data[0]:result.data;
   if(!item){const message=node('div');message.append(node('p','No se pudo recuperar el contenido. Puede deberse a permisos de acceso o a un recurso sin contenido.'));const b=node('button','✕ Cerrar lectura');b.onclick=closeReader;message.append(b);r.replaceChildren(message);return;}
   if(item.reading_content){x._reading_minutes=readingMinutes(item.reading_content);draw();}
