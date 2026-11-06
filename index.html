@@ -815,7 +815,7 @@ panel.querySelectorAll('[data-v36]').forEach(b=>b.addEventListener('click',()=>{
   modal.querySelectorAll('[data-v37-tab]').forEach(b=>b.classList.toggle('active',b===btn));
   modal.querySelectorAll('[data-v37-pane]').forEach(p=>p.classList.toggle('active',p.dataset.v37Pane===btn.dataset.v37Tab));
  }));
-})();</script><div id="v39AuthOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="v39AuthTitle"><div class="v39-auth-dialog"><button id="v39AuthClose" class="v39-auth-close" type="button" aria-label="Cerrar ventana de ingreso">×</button><div class="v39-auth-kicker">DESCÚBRETE · SOMOS ESPEJO</div><h2 id="v39AuthTitle">Bienvenida a tu espacio</h2><p>Inicia sesión para identificarte en Descúbrete. También puedes explorar sin una cuenta.</p><button id="v39GoogleLogin" class="v39-google-button" type="button"><span class="v39-google-icon" aria-hidden="true">G</span> Continuar con Google</button><button id="v39SkipLogin" class="v39-skip" type="button">Seguir explorando sin ingresar</button><p class="v39-auth-note">Google verificará tu identidad. Tu historial privado todavía no se sincroniza con Supabase.</p><p id="v39AuthStatus" class="v39-auth-status" role="status" aria-live="polite"></p></div></div>
+})();</script><div id="v39AuthOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="v39AuthTitle"><div class="v39-auth-dialog"><button id="v39AuthClose" class="v39-auth-close" type="button" aria-label="Cerrar ventana de ingreso">×</button><div class="v39-auth-kicker">DESCÚBRETE · SOMOS ESPEJO</div><h2 id="v39AuthTitle">Bienvenida a tu espacio</h2><p>Inicia sesión para identificarte en Descúbrete. También puedes explorar sin una cuenta.</p><button id="v39GoogleLogin" class="v39-google-button" type="button"><span class="v39-google-icon" aria-hidden="true">G</span> Continuar con Google</button><button id="v39SkipLogin" class="v39-skip" type="button">Seguir explorando sin ingresar</button><p class="v39-auth-note">Google verificará tu identidad. Tus datos privados se guardan en tu cuenta cuando la sincronización está disponible.</p><p id="v39AuthStatus" class="v39-auth-status" role="status" aria-live="polite"></p></div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
 <script id="v43-google-auth" defer>
 (function(){
@@ -848,8 +848,8 @@ menu.addEventListener('click',async e=>{const action=e.target.closest('[data-men
  if(action==='logout'){const {error}=await client.auth.signOut();if(error){document.getElementById('descMenuMessage').textContent=error.message;return}closeMenu();render(null);return}
  if(action==='universe')goAccountTab('timeline');
  if(action==='account')goAccountTab('settings');
- if(action==='plan'){closeMenu();const target=document.querySelector('#pricing, #planes, #premium, [id*=pricing], [id*=planes]');if(target){target.scrollIntoView({behavior:'smooth',block:'start'})}else{goAccountTab('settings');const st=document.getElementById('v39AccountState');if(st)st.textContent='No se encontró la sección de planes en esta versión.'}}
- if(action==='admin'){goAccountTab(null);document.getElementById('v43AdminArea')?.scrollIntoView({behavior:'smooth',block:'start'})}
+ if(action==='plan'){goAccountTab('settings');setTimeout(()=>document.getElementById('descMembershipPlans')?.scrollIntoView({behavior:'smooth',block:'center'}),300)}
+ if(action==='admin'){closeMenu();const b=document.querySelector('header nav button[data-page="essays"], button[data-page="essays"]');if(b)b.click();else if(typeof navigate==='function')navigate('essays');setTimeout(()=>{const target=document.getElementById('v47Admin');if(target&&!target.classList.contains('v47-hidden'))target.scrollIntoView({behavior:'smooth',block:'start'});else document.getElementById('v43AdminArea')?.scrollIntoView({behavior:'smooth',block:'start'});},350)}
 });
 document.addEventListener('click',e=>{if(!menu.hidden&&!menu.contains(e.target)&&!e.target.closest('header .v26-account-link'))closeMenu()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu()});
@@ -877,7 +877,7 @@ function render(user){
   b.setAttribute('aria-expanded','false');
  });
  const state=$('v39AccountState'), login=$('v39AccountLogin'),logout=$('v39AccountLogout');
- if(state)state.textContent=user?'Sesión iniciada: '+(user.email||'cuenta verificada')+'. Mi Universo aún no sincroniza datos privados y la administración sigue pendiente.':'No has iniciado sesión.';
+ if(state)state.textContent=user?'Sesión iniciada: '+(user.email||'cuenta verificada')+'. Puedes consultar tus datos y opciones desde Mi espacio.':'No has iniciado sesión.';
  if(login)login.hidden=!!user;
  if(logout)logout.hidden=!user;
  if(user){close();status.textContent='';void refreshMenuIdentity(user)}else{closeMenu();menuUserId=null;menu.querySelector('[data-menu="admin"]').hidden=true}
@@ -935,7 +935,7 @@ const account=$('account');
 if(account){
  const entry=document.createElement('div');
  entry.style.cssText='margin:18px 0;padding:18px;border:1px solid #d6c394;border-radius:16px;background:#fffaf0';
- entry.innerHTML='<strong>Acceso a Descúbrete</strong><p>Tu sesión se identifica con Google. Mi Universo todavía es una demostración: no guardes información sensible aquí.</p><button type="button" id="v39AccountLogin" class="btn">Continuar con Google</button> <button type="button" id="v39AccountLogout" class="btn ghost" hidden>Cerrar sesión</button><p id="v39AccountState" role="status" aria-live="polite"></p>';
+ entry.innerHTML='<strong>Acceso a Descúbrete</strong><p>Tu sesión se identifica con Google. Tus datos privados se gestionan desde Mi Universo y tu cuenta.</p><button type="button" id="v39AccountLogin" class="btn">Continuar con Google</button> <button type="button" id="v39AccountLogout" class="btn ghost" hidden>Cerrar sesión</button><p id="v39AccountState" role="status" aria-live="polite"></p>';
  account.insertBefore(entry,account.firstChild);
  $('v39AccountLogin').addEventListener('click',()=>void handleEntry());
  const adminArea=document.createElement('section');
@@ -944,6 +944,8 @@ if(account){
  adminArea.style.cssText='margin:18px 0;padding:20px;border:1px solid #c9b27b;border-radius:16px;background:#f5f8f5;color:#183a37';
  adminArea.innerHTML='<h3 style="margin-top:0">🔐 Administración · Somos Espejo</h3><p id="v43AdminStatus" role="status" aria-live="polite">Comprobando permisos…</p><div id="v43AdminVerified" hidden><p><strong>Cuenta administradora verificada.</strong> Este panel inicial solo confirma tu acceso. Las reservas, pagos y solicitudes todavía no están conectados a un servicio seguro.</p><p>No se muestran respuestas de cuestionarios ni diarios personales de otras personas.</p></div><button type="button" id="v43RetryAdmin" class="btn ghost">Volver a comprobar permisos</button>';
  entry.insertAdjacentElement('afterend',adminArea);
+ const plans=document.createElement('section');plans.id='descMembershipPlans';plans.style.cssText='margin:24px 0;padding:22px;border:1px solid #c8d8d3;border-radius:18px;background:#f8fbf9;color:#193e39;scroll-margin-top:90px';plans.innerHTML='<h3 style="margin-top:0">Mi suscripción · Descúbrete</h3><p>Consulta las modalidades disponibles. La contratación en línea aún no está habilitada en esta versión.</p><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px"><div style="border:1px solid #c8d8d3;border-radius:12px;padding:16px;background:white"><strong>Gratis</strong><p>Explora el contenido y las actividades gratuitas.</p></div><div style="border:1px solid #c8d8d3;border-radius:12px;padding:16px;background:white"><strong>Premium</strong><p>Lecturas y actividades exclusivas, sujetas a una membresía activa o cortesía.</p><small>Precios y contratación pendientes de configurar.</small></div></div>';
+ adminArea.insertAdjacentElement('afterend',plans);
  $('v43RetryAdmin').addEventListener('click',()=>void refreshAdminStatus(signedInUser));
 }
 googleButton.addEventListener('click',async()=>{
@@ -1131,4 +1133,23 @@ const loaders={timeline:loadHistory,journal:loadJournal,reports:loadReports,gall
 document.querySelectorAll('[data-universe-tab]').forEach(b=>b.addEventListener('click',()=>{void loaders[b.dataset.universeTab]?.()}));
 document.querySelectorAll('[data-u]').forEach(b=>b.addEventListener('click',()=>{const d=$('uSphereDetail');const label=b.querySelector('b')?.textContent||'Área';d.insertAdjacentHTML('beforeend','<p>Consulta tu recorrido en <b>Mi historia</b> o explora los cuestionarios disponibles en la página de evaluaciones.</p>')}));
 })();
-</script></body></html>
+</script>
+<style id="desc-section-editor-style">.desc-sections{border:1px solid #c8d8d3;border-radius:16px;padding:16px;margin:15px 0;background:#f7faf8}.desc-section-card{border:1px solid #d2e0d9;background:white;border-radius:12px;padding:12px;margin:12px 0}.desc-section-card input,.desc-section-card textarea{width:100%;box-sizing:border-box;margin:8px 0;padding:10px;border:1px solid #b9cbc5;border-radius:9px;font:inherit}.desc-section-card textarea{min-height:140px}.desc-section-actions{display:flex;flex-wrap:wrap;gap:7px}.desc-section-actions button,.desc-sections>button{cursor:pointer;padding:9px 12px;border:1px solid #a7c3b7;border-radius:9px;background:#e9f5ef;color:#194d44}.desc-section-actions button:disabled{opacity:.4}.desc-sections .desc-hint{font-size:.85rem;color:#48645d}</style>
+<script id="desc-section-editor-script">(()=>{
+'use strict';
+const DELIM='\n\n===\n\n';
+function parse(text){return String(text||'').split(/\n\s*={3,}\s*\n/).map(x=>x.trim()).filter(Boolean).map((chunk,i)=>{const lines=chunk.split('\n'),first=lines[0].trim();return first.length<95&&lines.length>1?{title:first,body:lines.slice(1).join('\n').trim()}:{title:'Parte '+(i+1),body:chunk}})}
+function attach(textareaId,anchorId){const field=document.getElementById(textareaId);if(!field)return;const box=document.createElement('div');box.className='desc-sections';const heading=document.createElement('h4');heading.textContent='Editor por secciones';const hint=document.createElement('p');hint.className='desc-hint';hint.textContent='Agrega títulos y textos, cambia el orden y guarda con los botones existentes. Los textos anteriores se conservan.';const list=document.createElement('div'),add=document.createElement('button');add.type='button';add.textContent='+ Agregar sección';box.append(heading,hint,list,add);field.insertAdjacentElement('beforebegin',box);field.style.display='none';let parts=[];
+function sync(){field.value=parts.map(p=>(p.title.trim()||'Sin título')+'\n'+p.body.trim()).join(DELIM);field.dispatchEvent(new Event('input',{bubbles:true}))}
+function draw(){list.replaceChildren();parts.forEach((part,i)=>{const card=document.createElement('div');card.className='desc-section-card';const label=document.createElement('strong');label.textContent='Sección '+(i+1);const title=document.createElement('input');title.placeholder='Título de la sección';title.value=part.title;title.oninput=()=>{part.title=title.value;sync()};const body=document.createElement('textarea');body.placeholder='Escribe aquí el contenido...';body.value=part.body;body.oninput=()=>{part.body=body.value;sync()};const actions=document.createElement('div');actions.className='desc-section-actions';for(const [caption,offset] of [['↑ Subir',-1],['↓ Bajar',1]]){const b=document.createElement('button');b.type='button';b.textContent=caption;b.disabled=i+offset<0||i+offset>=parts.length;b.onclick=()=>{[parts[i],parts[i+offset]]=[parts[i+offset],parts[i]];sync();draw()};actions.append(b)}const remove=document.createElement('button');remove.type='button';remove.textContent='Eliminar sección';remove.onclick=()=>{if(!confirm('¿Eliminar esta sección del editor? Se aplicará al guardar.'))return;parts.splice(i,1);sync();draw()};actions.append(remove);card.append(label,title,body,actions);list.append(card)})}
+function load(){parts=parse(field.value);if(!parts.length)parts=[{title:'Introducción',body:''}];draw()}
+add.onclick=()=>{parts.push({title:'Nueva sección',body:''});sync();draw()};load();
+// Cuando el editor de recursos existentes carga el texto de Supabase, actualizamos las secciones.
+if(anchorId){document.getElementById(anchorId)?.addEventListener('change',()=>setTimeout(load,450))}
+// La creación reinicia campos tras guardar; sincronizar solo cuando el campo se vacíe.
+const observer=new MutationObserver(()=>{});void observer;
+return {load};}
+function init(){attach('v49Reading');attach('v47Content','v47EditResource');}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();</script>
+</body></html>
